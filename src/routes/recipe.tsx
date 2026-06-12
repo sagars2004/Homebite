@@ -18,7 +18,7 @@ export const Route = createFileRoute("/recipe")({
 
 function RecipePage() {
   const navigate = useNavigate({ from: "/recipe" });
-  const [recipe, setRecipe] = useState<HomebiteRecipe | null>(() => cookingSession.getRecipe());
+  const [recipe, setRecipe] = useState<HomebiteRecipe | null>(null);
 
   useEffect(() => {
     const stored = cookingSession.getRecipe();
