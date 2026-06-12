@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ChefHat } from "lucide-react";
 import { AppShell } from "@/components/homebite/app-shell";
 import { Button } from "@/components/ui/button";
-import { cookingSession } from "@/lib/cooking-session.client";
+import { cookingSession } from "@/lib/cooking-session";
 import { makeRecipe } from "@/lib/recipe.functions";
 
 export const Route = createFileRoute("/loading")({
