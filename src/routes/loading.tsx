@@ -40,9 +40,13 @@ function LoadingPage() {
     let active = true;
     setError("");
     generate({ data: input })
-      .then((recipe) => {
+      .then((result) => {
         if (!active) return;
-        cookingSession.setRecipe(recipe);
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        cookingSession.setRecipe(result.recipe);
         navigate({ to: "/recipe", replace: true });
       })
       .catch((reason: unknown) => {
