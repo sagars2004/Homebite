@@ -10,12 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SavedRouteImport } from './routes/saved'
+import { Route as RecipeRouteImport } from './routes/recipe'
+import { Route as LoadingRouteImport } from './routes/loading'
 import { Route as IngredientsRouteImport } from './routes/ingredients'
 import { Route as IndexRouteImport } from './routes/index'
 
 const SavedRoute = SavedRouteImport.update({
   id: '/saved',
   path: '/saved',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RecipeRoute = RecipeRouteImport.update({
+  id: '/recipe',
+  path: '/recipe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoadingRoute = LoadingRouteImport.update({
+  id: '/loading',
+  path: '/loading',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IngredientsRoute = IngredientsRouteImport.update({
@@ -32,30 +44,38 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ingredients': typeof IngredientsRoute
+  '/loading': typeof LoadingRoute
+  '/recipe': typeof RecipeRoute
   '/saved': typeof SavedRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ingredients': typeof IngredientsRoute
+  '/loading': typeof LoadingRoute
+  '/recipe': typeof RecipeRoute
   '/saved': typeof SavedRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ingredients': typeof IngredientsRoute
+  '/loading': typeof LoadingRoute
+  '/recipe': typeof RecipeRoute
   '/saved': typeof SavedRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ingredients' | '/saved'
+  fullPaths: '/' | '/ingredients' | '/loading' | '/recipe' | '/saved'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ingredients' | '/saved'
-  id: '__root__' | '/' | '/ingredients' | '/saved'
+  to: '/' | '/ingredients' | '/loading' | '/recipe' | '/saved'
+  id: '__root__' | '/' | '/ingredients' | '/loading' | '/recipe' | '/saved'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   IngredientsRoute: typeof IngredientsRoute
+  LoadingRoute: typeof LoadingRoute
+  RecipeRoute: typeof RecipeRoute
   SavedRoute: typeof SavedRoute
 }
 
@@ -66,6 +86,20 @@ declare module '@tanstack/react-router' {
       path: '/saved'
       fullPath: '/saved'
       preLoaderRoute: typeof SavedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/recipe': {
+      id: '/recipe'
+      path: '/recipe'
+      fullPath: '/recipe'
+      preLoaderRoute: typeof RecipeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/loading': {
+      id: '/loading'
+      path: '/loading'
+      fullPath: '/loading'
+      preLoaderRoute: typeof LoadingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ingredients': {
@@ -88,6 +122,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   IngredientsRoute: IngredientsRoute,
+  LoadingRoute: LoadingRoute,
+  RecipeRoute: RecipeRoute,
   SavedRoute: SavedRoute,
 }
 export const routeTree = rootRouteImport
