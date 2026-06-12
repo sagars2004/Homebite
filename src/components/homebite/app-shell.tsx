@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Bookmark, ChevronLeft } from "lucide-react";
+import { ThemeToggle } from "./theme-toggle";
 
 type AppShellProps = {
   children: ReactNode;
@@ -20,9 +21,12 @@ export function AppShell({ children, backTo, compact = false }: AppShellProps) {
           ) : null}
         </div>
         <Link to="/" className="font-display text-2xl font-semibold tracking-tight">Homebite</Link>
-        <Link to="/saved" aria-label="Saved recipes" className="inline-flex size-10 items-center justify-center rounded-full hover:bg-secondary">
-          <Bookmark className="size-5" />
-        </Link>
+        <div className="flex items-center">
+          <ThemeToggle />
+          <Link to="/saved" aria-label="Saved recipes" className="inline-flex size-10 items-center justify-center rounded-full hover:bg-secondary">
+            <Bookmark className="size-5" />
+          </Link>
+        </div>
       </header>
       <main className={compact ? "mx-auto w-full max-w-2xl px-5 pb-28 sm:px-8" : "mx-auto w-full max-w-5xl px-5 pb-28 sm:px-8"}>
         {children}

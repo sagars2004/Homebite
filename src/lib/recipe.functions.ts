@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { generateText } from "ai";
 import { z } from "zod";
-import { createLovableAiGatewayProvider } from "./ai-gateway.server";
+import { createAiProvider } from "./ai-provider.server";
 
 const InputSchema = z.object({
   ingredients: z.array(z.string().trim().min(1).max(80)).min(1).max(40),
@@ -78,10 +78,7 @@ export const makeRecipe = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data }) => {
     try {
-      const key = process.env.LOVABLE_API_KEY;
-      if (!key) throw new Error("Missing LOVABLE_API_KEY");
-      const gateway = createLovableAiGatewayProvider(key);
-      const model = gateway("google/gemini-3-flash-preview");
+      const model = createAiProvider();
 
       const recommendation = await generateJson({
         model,
