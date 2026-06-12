@@ -77,14 +77,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
+      { title: "Homebite" },
       { name: "description", content: "Tell Homebite what you have and get one confident dinner plan." },
       { name: "author", content: "Homebite" },
       { property: "og:title", content: "Homebite" },
       { property: "og:description", content: "Tell me what to make tonight." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Homebite" },
+      { name: "twitter:description", content: "Tell me what to make tonight." },
     ],
     links: [
       { rel: "preconnect", href: "https://fonts.googleapis.com" },

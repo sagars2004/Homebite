@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Camera, ChevronRight, IceCreamBowl, Pencil } from "lucide-react";
 import { AppShell } from "@/components/homebite/app-shell";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ function Index() {
         <div className="mt-10 space-y-3">
           {choices.map(({ icon: Icon, label, note, to }) => (
             <Button key={label} asChild={Boolean(to)} variant={to ? "default" : "outline"} disabled={!to} className="h-16 w-full justify-start rounded-xl px-5 text-base shadow-none disabled:opacity-55">
-              {to ? <a href={to}><Icon className="mr-2 size-5" />{label}<ChevronRight className="ml-auto size-5" /></a> : <span><Icon className="mr-2 size-5" />{label}<small className="ml-auto text-xs font-normal opacity-70">{note}</small></span>}
+              {to ? <Link to={to}><Icon className="mr-2 size-5" />{label}<ChevronRight className="ml-auto size-5" /></Link> : <span><Icon className="mr-2 size-5" />{label}<small className="ml-auto text-xs font-normal opacity-70">{note}</small></span>}
             </Button>
           ))}
         </div>
