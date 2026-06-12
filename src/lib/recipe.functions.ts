@@ -30,7 +30,7 @@ function messageForError(error: unknown) {
   const message = error instanceof Error ? error.message : "";
   if (message.includes("402")) return "Homebite is out of AI credits right now. Add workspace credits, then try again.";
   if (message.includes("429")) return "The kitchen is busy right now. Give it a minute, then try again.";
-  return "Couldn't put a recipe together just now. Your ingredients are still here, so try again.";
+  return message ? `Couldn't put a recipe together: ${message}` : "Couldn't put a recipe together just now. Your ingredients are still here, so try again.";
 }
 
 export const makeRecipe = createServerFn({ method: "POST" })
