@@ -53,17 +53,43 @@ function LoadingPage() {
       .then((result) => {
         if (!active) return;
         if (!result.ok) {
+          pendo.track("recipe_generation_failed", {
+            errorMessage: result.error,
+            time: input.time,
+            vibe: input.vibe,
+            ingredientCount: input.ingredients.length,
+            attemptNumber: attempt + 1,
+          });
           setError(result.error);
           return;
         }
+        pendo.track("recipe_generated", {
+          dishName: result.recipe.dishName,
+          timeEstimate: result.recipe.timeEstimate,
+          effort: result.recipe.effort,
+          ingredientsUsedCount: result.recipe.ingredientsUsed.length,
+          missingIngredientsCount: result.recipe.missingIngredients.length,
+          stepsCount: result.recipe.steps.length,
+          hasImage: Boolean(result.recipe.imageUrl),
+          time: input.time,
+          vibe: input.vibe,
+          ingredientCount: input.ingredients.length,
+        });
         cookingSession.setRecipe(result.recipe);
         navigate({ to: "/recipe", replace: true });
       })
       .catch((reason: unknown) => {
         if (!active) return;
-        setError(
-          reason instanceof Error ? reason.message : "Couldn't put a recipe together. Try again.",
-        );
+        const errorMessage =
+          reason instanceof Error ? reason.message : "Couldn't put a recipe together. Try again.";
+        pendo.track("recipe_generation_failed", {
+          errorMessage,
+          time: input.time,
+          vibe: input.vibe,
+          ingredientCount: input.ingredients.length,
+          attemptNumber: attempt + 1,
+        });
+        setError(errorMessage);
       });
     return () => {
       active = false;
@@ -85,7 +111,20 @@ function LoadingPage() {
             <p role="alert" className="text-sm leading-6 text-destructive">
               {error}
             </p>
-            <Button onClick={() => setAttempt((value) => value + 1)} className="mt-5">
+            <Button
+              onClick={() => {
+                const input = cookingSession.getInput();
+                pendo.track("recipe_generation_retried", {
+                  attemptNumber: attempt + 1,
+                  previousErrorMessage: error,
+                  time: input?.time,
+                  vibe: input?.vibe,
+                  ingredientCount: input?.ingredients.length,
+                });
+                setAttempt((value) => value + 1);
+              }}
+              className="mt-5"
+            >
               Try again
             </Button>
           </div>
