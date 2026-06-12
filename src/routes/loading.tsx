@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ChefHat } from "lucide-react";
 import { AppShell } from "@/components/homebite/app-shell";
 import { Button } from "@/components/ui/button";
-import { cookingSession } from "@/lib/cooking-session.client";
+import { cookingSession } from "@/lib/cooking-session";
 import { makeRecipe } from "@/lib/recipe.functions";
 
 export const Route = createFileRoute("/loading")({
@@ -40,9 +40,13 @@ function LoadingPage() {
     let active = true;
     setError("");
     generate({ data: input })
-      .then((recipe) => {
+      .then((result) => {
         if (!active) return;
-        cookingSession.setRecipe(recipe);
+        if (!result.ok) {
+          setError(result.error);
+          return;
+        }
+        cookingSession.setRecipe(result.recipe);
         navigate({ to: "/recipe", replace: true });
       })
       .catch((reason: unknown) => {

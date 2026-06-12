@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Check, Clock3, RotateCcw, ShoppingBasket } from "lucide-react";
 import { AppShell } from "@/components/homebite/app-shell";
 import { Button } from "@/components/ui/button";
-import { cookingSession, type HomebiteRecipe } from "@/lib/cooking-session.client";
+import { cookingSession, type HomebiteRecipe } from "@/lib/cooking-session";
 import fallbackImage from "@/assets/homebite-fallback.jpg";
 
 export const Route = createFileRoute("/recipe")({

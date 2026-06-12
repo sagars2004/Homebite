@@ -5,7 +5,7 @@ import { AppShell } from "@/components/homebite/app-shell";
 import { IngredientChip } from "@/components/homebite/ingredient-chip";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cookingSession, type CookingPreferences } from "@/lib/cooking-session.client";
+import { cookingSession, type CookingPreferences } from "@/lib/cooking-session";
 
 export const Route = createFileRoute("/ingredients")({
   head: () => ({ meta: [
