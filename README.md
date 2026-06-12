@@ -1,0 +1,1 @@
+Homebite is a cooking assistant that turns what's already in your kitchen into a confident dinner plan. Snap a grocery receipt, upload a photo, or just type what you have; instead of a list of options to scroll through, you get one clear recommendation and step-by-step instructions written like a friend talking you through it.
