@@ -1,23 +1,75 @@
-import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { createGoogleGenerativeAI } from "@ai-sdk/google";
+import { generateText, type ModelMessage } from "ai";
+import type { z } from "zod";
 
-const DEFAULT_AI_BASE_URL = "https://ai.gateway.lovable.dev/v1";
-const DEFAULT_AI_MODEL = "google/gemini-3-flash-preview";
+// Direct Google Gemini API. Override the model with GEMINI_MODEL if needed.
+const DEFAULT_GEMINI_MODEL = "gemini-3-flash-preview";
 
 export function createAiProvider() {
-  const apiKey = process.env.AI_API_KEY ?? process.env.LOVABLE_API_KEY;
-  if (!apiKey) throw new Error("Missing AI_API_KEY");
+  const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  if (!apiKey) throw new Error("Missing GEMINI_API_KEY");
 
-  const baseURL = process.env.AI_BASE_URL ?? DEFAULT_AI_BASE_URL;
-  const isLovableGateway = baseURL.includes("ai.gateway.lovable.dev");
+  const google = createGoogleGenerativeAI({ apiKey });
+  return google(process.env.GEMINI_MODEL ?? DEFAULT_GEMINI_MODEL);
+}
 
-  const provider = createOpenAICompatible({
-    name: "homebite-ai",
-    baseURL,
-    apiKey,
-    headers: isLovableGateway
-      ? { "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "vercel-ai-sdk" }
-      : undefined,
-  });
+// Gemini returns either a JSON object or a JSON array depending on the prompt.
+// Strip any markdown fences, then slice from the first opening bracket to the
+// last matching closing bracket so trailing prose never breaks JSON.parse.
+export function parseJson<T>(text: string, schema: z.ZodType<T>): T {
+  const cleaned = text
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "");
 
-  return provider(process.env.AI_MODEL ?? DEFAULT_AI_MODEL);
+  const firstObject = cleaned.indexOf("{");
+  const firstArray = cleaned.indexOf("[");
+  const startsWithArray = firstArray >= 0 && (firstObject < 0 || firstArray < firstObject);
+
+  const open = startsWithArray ? firstArray : firstObject;
+  const close = startsWithArray ? cleaned.lastIndexOf("]") : cleaned.lastIndexOf("}");
+  const candidate = open >= 0 && close > open ? cleaned.slice(open, close + 1) : cleaned;
+
+  return schema.parse(JSON.parse(candidate));
+}
+
+type GenerateJsonArgs<T> = {
+  schema: z.ZodType<T>;
+  system?: string;
+  prompt?: string;
+  messages?: ModelMessage[];
+  maxOutputTokens?: number;
+};
+
+// Single place that talks to the model and guarantees a schema-valid JSON
+// result. Retries once with a nudge when the first response is unparseable.
+export async function generateJson<T>({
+  schema,
+  system,
+  prompt,
+  messages,
+  maxOutputTokens = 4096,
+}: GenerateJsonArgs<T>): Promise<T> {
+  const model = createAiProvider();
+  const retryNote =
+    "\n\nYour previous response was invalid. Return raw JSON only, exactly as requested, with no markdown.";
+
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const result = await generateText({
+        model,
+        system,
+        ...(messages
+          ? { messages }
+          : { prompt: attempt === 0 ? (prompt ?? "") : `${prompt ?? ""}${retryNote}` }),
+        maxOutputTokens,
+      });
+      if (!result.text.trim()) throw new Error(`Empty AI response (${result.finishReason})`);
+      return parseJson(result.text, schema);
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("AI returned invalid JSON twice");
 }

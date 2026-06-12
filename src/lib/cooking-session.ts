@@ -34,8 +34,10 @@ function read<T>(key: string): T | null {
 
 export const cookingSession = {
   getInput: () => read<CookingPreferences>(INPUT_KEY),
-  setInput: (input: CookingPreferences) => window.sessionStorage.setItem(INPUT_KEY, JSON.stringify(input)),
+  setInput: (input: CookingPreferences) =>
+    window.sessionStorage.setItem(INPUT_KEY, JSON.stringify(input)),
   getRecipe: () => read<HomebiteRecipe>(RECIPE_KEY),
-  setRecipe: (recipe: HomebiteRecipe) => window.sessionStorage.setItem(RECIPE_KEY, JSON.stringify(recipe)),
+  setRecipe: (recipe: HomebiteRecipe) =>
+    window.sessionStorage.setItem(RECIPE_KEY, JSON.stringify(recipe)),
   clearRecipe: () => window.sessionStorage.removeItem(RECIPE_KEY),
 };
