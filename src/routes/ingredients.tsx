@@ -107,6 +107,12 @@ function IngredientsPage() {
       vibes,
     });
     cookingSession.clearRecipe();
+    pendo.track("ingredients_submitted", {
+      ingredientCount: ingredients.length,
+      ingredients: ingredients.join(", "),
+      time,
+      vibe,
+    });
     navigate({ to: "/loading" });
   };
 

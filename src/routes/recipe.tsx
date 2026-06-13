@@ -33,6 +33,15 @@ function RecipePage() {
 
   if (!recipe) return null;
   const reroll = () => {
+    const input = cookingSession.getInput();
+    pendo.track("recipe_rerolled", {
+      previousDishName: recipe.dishName,
+      previousTimeEstimate: recipe.timeEstimate,
+      previousEffort: recipe.effort,
+      time: input?.time,
+      vibe: input?.vibe,
+      ingredientCount: input?.ingredients.length,
+    });
     cookingSession.clearRecipe();
     navigate({ to: "/loading" });
   };
