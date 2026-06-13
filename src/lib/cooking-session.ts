@@ -1,7 +1,16 @@
 export type CookingPreferences = {
   ingredients: string[];
-  time: "Quick (20 min)" | "Normal (40 min)" | "I have time";
-  vibe: "Comfort food" | "Something new" | "Keep it light" | "Impress someone";
+  /** Minutes the cook is willing to spend, from a slider. 120 means "120+ / I have time". */
+  timeMinutes: number;
+  /** Optional free-text note about tonight (e.g. "minimal cleanup, I'm wiped"). */
+  timeNote?: string;
+  /** What they're feeling — moods, cuisines, and styles. Can be several at once. */
+  vibes: string[];
+};
+
+export const DEFAULT_PREFERENCES: Pick<CookingPreferences, "timeMinutes" | "vibes"> = {
+  timeMinutes: 40,
+  vibes: ["Comfort food"],
 };
 
 export type RecipeIngredient = { name: string; measure: string };
@@ -34,8 +43,10 @@ function read<T>(key: string): T | null {
 
 export const cookingSession = {
   getInput: () => read<CookingPreferences>(INPUT_KEY),
-  setInput: (input: CookingPreferences) => window.sessionStorage.setItem(INPUT_KEY, JSON.stringify(input)),
+  setInput: (input: CookingPreferences) =>
+    window.sessionStorage.setItem(INPUT_KEY, JSON.stringify(input)),
   getRecipe: () => read<HomebiteRecipe>(RECIPE_KEY),
-  setRecipe: (recipe: HomebiteRecipe) => window.sessionStorage.setItem(RECIPE_KEY, JSON.stringify(recipe)),
+  setRecipe: (recipe: HomebiteRecipe) =>
+    window.sessionStorage.setItem(RECIPE_KEY, JSON.stringify(recipe)),
   clearRecipe: () => window.sessionStorage.removeItem(RECIPE_KEY),
 };
