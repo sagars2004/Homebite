@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Check, Clock3, RotateCcw, ShoppingBasket } from "lucide-react";
 import { AppShell } from "@/components/homebite/app-shell";
+import { DishImage } from "@/components/homebite/dish-image";
 import { Button } from "@/components/ui/button";
 import { cookingSession, type HomebiteRecipe } from "@/lib/cooking-session";
-import fallbackImage from "@/assets/homebite-fallback.jpg";
 
 export const Route = createFileRoute("/recipe")({
   head: () => ({
@@ -40,8 +40,8 @@ function RecipePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="relative h-[40vh] min-h-80 w-full overflow-hidden bg-muted">
-        <img
-          src={recipe.imageUrl ?? fallbackImage}
+        <DishImage
+          src={recipe.imageUrl}
           alt={recipe.dishName}
           className="h-full w-full object-cover"
           width={1200}

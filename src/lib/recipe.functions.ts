@@ -4,9 +4,16 @@ import { generateJson } from "./ai-provider.server";
 
 const InputSchema = z.object({
   ingredients: z.array(z.string().trim().min(1).max(80)).min(1).max(40),
-  time: z.enum(["Quick (20 min)", "Normal (40 min)", "I have time"]),
-  vibe: z.enum(["Comfort food", "Something new", "Keep it light", "Impress someone"]),
+  timeMinutes: z.number().int().min(5).max(240),
+  timeNote: z.string().trim().max(400).optional(),
+  vibes: z.array(z.string().trim().min(1).max(60)).max(24).default([]),
 });
+
+function describeTime(minutes: number) {
+  if (minutes >= 120) return "plenty of time tonight (two hours or more if it's worth it)";
+  if (minutes <= 20) return `only about ${minutes} minutes — keep it fast`;
+  return `about ${minutes} minutes`;
+}
 
 const RecommendationSchema = z.object({
   dish_name: z.string(),
@@ -45,10 +52,18 @@ export const makeRecipe = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data }) => {
     try {
-      // Verbatim PRD recommendation user prompt, with placeholders filled.
+      const vibePhrase =
+        data.vibes.length > 0 ? data.vibes.join(", ") : "anything good — cook's choice";
+      const notePhrase = data.timeNote ? ` Extra context from me: ${data.timeNote}.` : "";
+
+      // Recommendation prompt — the cook's vibes (moods, cuisines, styles) and
+      // time budget steer both this answer and the search_term used to query
+      // TheMealDB below.
       const recommendation = await generateJson({
         system: RECOMMENDATION_SYSTEM,
-        prompt: `I have these ingredients: ${data.ingredients.join(", ")}. I want something ${data.vibe} and I have ${data.time} time. What should I make tonight?
+        prompt: `I have these ingredients: ${data.ingredients.join(", ")}. Tonight I'm feeling: ${vibePhrase}. I have ${describeTime(data.timeMinutes)}.${notePhrase} What should I make tonight?
+
+Honor what I'm feeling — if I named a cuisine (e.g. Thai, Italian, Mexican) lean into it, and if I named a style (e.g. protein heavy, vegetarian, low carb, one pan) respect it. Pick one dish that fits my time.
 
 Return ONLY a valid JSON object with these exact fields:
 {
@@ -58,7 +73,7 @@ Return ONLY a valid JSON object with these exact fields:
   "missing_ingredients": ["array of common pantry staples this dish needs that I didn't list — keep this short, max 3 items"],
   "time_estimate": "string — e.g. '25 minutes'",
   "effort": "string — e.g. 'Normal effort'",
-  "search_term": "string — best single search term to find this dish on a recipe database"
+  "search_term": "string — best single search term to find this dish on a recipe database, reflecting any cuisine I asked for"
 }
 
 Return raw JSON only, no markdown, no explanation.`,
@@ -131,8 +146,9 @@ No markdown, no explanation.`,
         schema: GeneratedRecipeSchema,
       });
 
-      const imageUrl = `https://source.unsplash.com/800x600/?${encodeURIComponent(generated.image_search_term)},food`;
-
+      // No MealDB match for this dish, so we have no real photo of it. Leave
+      // imageUrl null rather than borrowing an unrelated thumbnail — the client
+      // shows a clean placeholder instead of a misleading picture.
       return {
         ok: true as const,
         recipe: {
@@ -140,7 +156,7 @@ No markdown, no explanation.`,
           reason: recommendation.reason,
           timeEstimate: recommendation.time_estimate,
           effort: recommendation.effort,
-          imageUrl,
+          imageUrl: null,
           ingredientsUsed: recommendation.ingredients_used,
           missingIngredients: recommendation.missing_ingredients,
           ingredients: generated.ingredients,

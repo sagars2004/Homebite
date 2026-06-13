@@ -7,22 +7,30 @@ import {
   ChefHat,
   ChevronRight,
   Clock3,
+  Fish,
+  Flame,
   IceCreamBowl,
   Menu,
   MessageCircle,
   Pencil,
+  Soup,
   Sparkles,
+  Wheat,
 } from "lucide-react";
 import { PhotoUploadButton } from "@/components/homebite/photo-upload-button";
 import { ThemeToggle } from "@/components/homebite/theme-toggle";
 import { Button } from "@/components/ui/button";
+import DisplayCards from "@/components/ui/display-cards";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Homebite — Tell me what to make tonight" },
-      { name: "description", content: "Turn the ingredients you have into one confident dinner plan." },
+      {
+        name: "description",
+        content: "Turn the ingredients you have into one confident dinner plan.",
+      },
       { property: "og:title", content: "Homebite" },
       { property: "og:description", content: "Tell me what to make tonight." },
     ],
@@ -56,6 +64,45 @@ const features = [
     icon: MessageCircle,
     title: "Cooked with a friend",
     description: "Conversational steps, quick substitutions, and a plan for the leftovers.",
+  },
+];
+
+const heroCards = [
+  {
+    icon: <Soup className="size-4 text-primary-foreground" />,
+    cuisine: "Thai",
+    title: "Green curry",
+    quote: "You’ve got the aromatics — this is a one-pan kind of night.",
+    ingredients: ["Chicken", "Coconut milk", "Curry paste", "Basil"],
+    meta: "~35 min · Easy",
+    className: "[grid-area:stack] hover:-translate-y-12",
+  },
+  {
+    icon: <Flame className="size-4 text-primary-foreground" />,
+    cuisine: "Chinese",
+    title: "Tomato egg stir-fry",
+    quote: "Five things you already have, faster than takeout.",
+    ingredients: ["Eggs", "Tomatoes", "Spring onion", "Rice"],
+    meta: "~15 min · Quick",
+    className: "[grid-area:stack] translate-x-14 translate-y-14 hover:-translate-y-1",
+  },
+  {
+    icon: <Fish className="size-4 text-primary-foreground" />,
+    cuisine: "Tex-Mex",
+    title: "Cajun fish tacos",
+    quote: "Fish cooks in minutes — dinner before you’re hungry again.",
+    ingredients: ["White fish", "Tortillas", "Lime", "Cabbage"],
+    meta: "~25 min · Easy",
+    className: "[grid-area:stack] translate-x-28 translate-y-28 hover:-translate-y-1",
+  },
+  {
+    icon: <Wheat className="size-4 text-primary-foreground" />,
+    cuisine: "Italian",
+    title: "Garlic butter pasta",
+    quote: "Pantry magic — comes together while the water boils.",
+    ingredients: ["Pasta", "Garlic", "Parmesan", "Parsley"],
+    meta: "~20 min · Easy",
+    className: "[grid-area:stack] translate-x-[10.5rem] translate-y-[10.5rem] hover:translate-y-20",
   },
 ];
 
@@ -120,11 +167,19 @@ function Index() {
               <nav className="mt-8 flex flex-col gap-5">
                 {navItems.map((item) =>
                   item.to ? (
-                    <Link key={item.title} to={item.to} className="text-base font-medium text-foreground">
+                    <Link
+                      key={item.title}
+                      to={item.to}
+                      className="text-base font-medium text-foreground"
+                    >
                       {item.title}
                     </Link>
                   ) : (
-                    <a key={item.title} href={item.href} className="text-base font-medium text-foreground">
+                    <a
+                      key={item.title}
+                      href={item.href}
+                      className="text-base font-medium text-foreground"
+                    >
                       {item.title}
                     </a>
                   ),
@@ -142,81 +197,102 @@ function Index() {
       </header>
 
       <main>
-        <section className="mx-auto flex max-w-3xl flex-col items-center px-5 pb-20 pt-10 text-center sm:pt-16">
-          <motion.span
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-6 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-secondary-foreground"
-          >
-            <Sparkles className="size-3.5" />
-            Dinner, decided
-          </motion.span>
-
-          <motion.h1
-            variants={headline}
-            initial="hidden"
-            animate="show"
-            className="flex flex-wrap justify-center gap-x-3 gap-y-1 font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl"
-          >
-            {headlineWords.map((text, index) => (
-              <motion.span
-                key={text}
-                variants={word}
-                className={`inline-block ${index === headlineWords.length - 1 ? "text-primary" : ""}`}
-              >
-                {text}
-              </motion.span>
-            ))}
-          </motion.h1>
-
-          <motion.p
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground"
-          >
-            Give me what’s in your kitchen — a receipt, a fridge photo, or a quick list — and I’ll
-            tell you one good thing to cook, then talk you through it.
-          </motion.p>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7, duration: 0.6 }}
-            className="mt-10 w-full max-w-md space-y-3"
-          >
-            <PhotoUploadButton icon={Camera} label="Snap your receipt" source="receipt" />
-            <Button
-              asChild
-              variant="default"
-              className="h-16 w-full justify-start rounded-xl px-5 text-base shadow-none"
+        <section className="mx-auto grid max-w-6xl items-center gap-12 px-5 pb-20 pt-10 sm:px-8 sm:pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+          <div className="flex flex-col items-center text-center lg:items-start lg:text-left">
+            <motion.span
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-6 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.18em] text-secondary-foreground"
             >
-              <Link to="/ingredients">
-                <Pencil className="mr-2 size-5" />
-                Type what you have
-                <ChevronRight className="ml-auto size-5" />
-              </Link>
-            </Button>
-            <PhotoUploadButton icon={IceCreamBowl} label="Photo my fridge" source="fridge" note="Beta" />
-          </motion.div>
+              <Sparkles className="size-3.5" />
+              Dinner, decided
+            </motion.span>
+
+            <motion.h1
+              variants={headline}
+              initial="hidden"
+              animate="show"
+              className="flex flex-wrap justify-center gap-x-3 gap-y-1 font-display text-5xl font-semibold leading-[1.05] tracking-tight sm:text-6xl lg:justify-start lg:text-7xl"
+            >
+              {headlineWords.map((text, index) => (
+                <motion.span
+                  key={text}
+                  variants={word}
+                  className={`inline-block ${index === headlineWords.length - 1 ? "text-primary" : ""}`}
+                >
+                  {text}
+                </motion.span>
+              ))}
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground"
+            >
+              Give me what’s in your kitchen — a receipt, a fridge photo, or a quick list — and I’ll
+              tell you one good thing to cook. No BS.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7, duration: 0.6 }}
+              className="mt-10 w-full max-w-md space-y-3"
+            >
+              <PhotoUploadButton icon={Camera} label="Snap your receipt" source="receipt" />
+              <Button
+                asChild
+                variant="default"
+                className="h-16 w-full justify-start rounded-xl px-5 text-base shadow-none"
+              >
+                <Link to="/ingredients">
+                  <Pencil className="mr-2 size-5" />
+                  Type what you have
+                  <ChevronRight className="ml-auto size-5" />
+                </Link>
+              </Button>
+              <PhotoUploadButton
+                icon={IceCreamBowl}
+                label="Photo my fridge"
+                source="fridge"
+                note="Beta"
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1, duration: 0.6 }}
+              className="mt-10 flex flex-wrap justify-center gap-x-7 gap-y-3 lg:justify-start"
+            >
+              {valueLabels.map(({ icon: Icon, label }) => (
+                <div key={label} className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Icon className="size-4 text-primary" />
+                  {label}
+                </div>
+              ))}
+            </motion.div>
+          </div>
 
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1, duration: 0.6 }}
-            className="mt-10 flex flex-wrap justify-center gap-x-7 gap-y-3"
+            initial={{ opacity: 0, y: 24, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: 0.4, duration: 0.7, type: "spring", stiffness: 90, damping: 16 }}
+            className="flex min-h-[34rem] w-full items-center justify-center"
           >
-            {valueLabels.map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Icon className="size-4 text-primary" />
-                {label}
-              </div>
-            ))}
+            <div className="-translate-x-4 -translate-y-36 scale-90 sm:scale-100 lg:-translate-x-10 lg:-translate-y-16">
+              <DisplayCards cards={heroCards} />
+            </div>
           </motion.div>
         </section>
 
-        <section id="how" className="mx-auto max-w-6xl scroll-mt-20 px-5 pb-24 sm:px-8">
+        <section
+          id="how"
+          className="mx-auto max-w-6xl scroll-mt-20 px-5 pb-24 pt-12 sm:px-8 sm:pt-20"
+        >
           <motion.h2
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}

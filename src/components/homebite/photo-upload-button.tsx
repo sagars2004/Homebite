@@ -3,7 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { cookingSession } from "@/lib/cooking-session";
+import { cookingSession, DEFAULT_PREFERENCES } from "@/lib/cooking-session";
 import { extractIngredients } from "@/lib/vision.functions";
 
 const MAX_FILE_BYTES = 10 * 1024 * 1024;
@@ -56,8 +56,9 @@ export function PhotoUploadButton({ icon: Icon, label, source, note }: PhotoUplo
       const existing = cookingSession.getInput();
       cookingSession.setInput({
         ingredients: Array.from(new Set([...(existing?.ingredients ?? []), ...result.ingredients])),
-        time: existing?.time ?? "Normal (40 min)",
-        vibe: existing?.vibe ?? "Comfort food",
+        timeMinutes: existing?.timeMinutes ?? DEFAULT_PREFERENCES.timeMinutes,
+        timeNote: existing?.timeNote,
+        vibes: existing?.vibes ?? DEFAULT_PREFERENCES.vibes,
       });
       cookingSession.clearRecipe();
       navigate({ to: "/ingredients" });

@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { ChefHat } from "lucide-react";
 import { AppShell } from "@/components/homebite/app-shell";
+import { FoodMarquee } from "@/components/homebite/food-marquee";
 import { Button } from "@/components/ui/button";
 import { cookingSession } from "@/lib/cooking-session";
 import { makeRecipe } from "@/lib/recipe.functions";
@@ -72,7 +73,7 @@ function LoadingPage() {
 
   return (
     <AppShell compact>
-      <section className="flex min-h-[72vh] flex-col items-center justify-center text-center">
+      <section className="relative z-10 flex min-h-[42vh] flex-col items-center justify-center pt-6 text-center">
         <div className="relative flex size-24 items-center justify-center rounded-full bg-secondary text-secondary-foreground before:absolute before:inset-0 before:animate-ping before:rounded-full before:bg-secondary before:opacity-60">
           <ChefHat className="relative size-10" />
         </div>
@@ -91,6 +92,7 @@ function LoadingPage() {
           </div>
         ) : null}
       </section>
+      {error ? null : <FoodMarquee />}
     </AppShell>
   );
 }
