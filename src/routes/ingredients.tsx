@@ -110,8 +110,8 @@ function IngredientsPage() {
     pendo.track("ingredients_submitted", {
       ingredientCount: ingredients.length,
       ingredients: ingredients.join(", "),
-      time,
-      vibe,
+      timeMinutes,
+      vibes: vibes.join(", "),
     });
     navigate({ to: "/loading" });
   };

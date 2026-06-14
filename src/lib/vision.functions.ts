@@ -21,7 +21,7 @@ function notReadableMessage(source: "receipt" | "fridge") {
 }
 
 export const extractIngredients = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => InputSchema.parse(input))
+  .validator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data }) => {
     try {
       const raw = await generateJson({

@@ -41,8 +41,24 @@ type GenerateJsonArgs<T> = {
   maxOutputTokens?: number;
 };
 
+// A rate-limit / quota error (HTTP 429). Retrying within the same minute only
+// burns more quota, so we surface it immediately instead of looping.
+function isRateLimitError(error: unknown): boolean {
+  const message = (error instanceof Error ? error.message : String(error ?? "")).toLowerCase();
+  return (
+    message.includes("429") ||
+    message.includes("resource_exhausted") ||
+    message.includes("quota") ||
+    message.includes("rate limit")
+  );
+}
+
 // Single place that talks to the model and guarantees a schema-valid JSON
-// result. Retries once with a nudge when the first response is unparseable.
+// result. Retries once with a nudge when the first response is unparseable, but
+// never retries on rate-limit errors (that just multiplies quota usage).
+//
+// We also pass maxRetries: 0 so the AI SDK doesn't silently retry each call up
+// to 3x — on a low quota that amplification is what trips the 429 limit.
 export async function generateJson<T>({
   schema,
   system,
@@ -64,11 +80,13 @@ export async function generateJson<T>({
           ? { messages }
           : { prompt: attempt === 0 ? (prompt ?? "") : `${prompt ?? ""}${retryNote}` }),
         maxOutputTokens,
+        maxRetries: 0,
       });
       if (!result.text.trim()) throw new Error(`Empty AI response (${result.finishReason})`);
       return parseJson(result.text, schema);
     } catch (error) {
       lastError = error;
+      if (isRateLimitError(error)) break;
     }
   }
   throw lastError instanceof Error ? lastError : new Error("AI returned invalid JSON twice");

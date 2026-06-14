@@ -39,6 +39,28 @@ type Meal = Record<string, string | null>;
 const RECOMMENDATION_SYSTEM =
   "You are a confident, experienced home cook advising a friend in their 20s cooking for themselves tonight. Speak plainly and directly. Give one clear recommendation, never a list. Sound like a knowledgeable friend, not a recipe app. Never say 'based on your ingredients' or 'I recommend' — just tell them what to make.";
 
+type PexelsResponse = { photos?: Array<{ src?: { large?: string; landscape?: string } }> };
+
+// Look up a real photo for a dish on Pexels. Returns null when there's no key,
+// no match, or the request fails, so callers can fall back to the placeholder.
+async function fetchDishPhoto(searchTerm: string): Promise<string | null> {
+  const apiKey = process.env.PEXELS_API_KEY;
+  const query = searchTerm.trim();
+  if (!apiKey || !query) return null;
+
+  try {
+    const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(query)}&per_page=1&orientation=landscape`;
+    const response = await fetch(url, { headers: { Authorization: apiKey } });
+    if (!response.ok) return null;
+    const data = (await response.json()) as PexelsResponse;
+    const src = data.photos?.[0]?.src;
+    return src?.landscape ?? src?.large ?? null;
+  } catch (error) {
+    console.warn("Homebite Pexels photo lookup failed", error);
+    return null;
+  }
+}
+
 function messageForError(error: unknown) {
   const message = error instanceof Error ? error.message : "";
   if (message.includes("402"))
@@ -49,7 +71,7 @@ function messageForError(error: unknown) {
 }
 
 export const makeRecipe = createServerFn({ method: "POST" })
-  .inputValidator((input: unknown) => InputSchema.parse(input))
+  .validator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data }) => {
     try {
       const vibePhrase =
@@ -118,6 +140,9 @@ ${rawInstructions}`,
           }
         }
 
+        const imageUrl =
+          meal.strMealThumb ?? (await fetchDishPhoto(recommendation.search_term));
+
         return {
           ok: true as const,
           recipe: {
@@ -125,7 +150,7 @@ ${rawInstructions}`,
             reason: recommendation.reason,
             timeEstimate: recommendation.time_estimate,
             effort: recommendation.effort,
-            imageUrl: meal.strMealThumb ?? null,
+            imageUrl,
             ingredientsUsed: recommendation.ingredients_used,
             missingIngredients: recommendation.missing_ingredients,
             ingredients,
@@ -146,9 +171,13 @@ No markdown, no explanation.`,
         schema: GeneratedRecipeSchema,
       });
 
-      // No MealDB match for this dish, so we have no real photo of it. Leave
-      // imageUrl null rather than borrowing an unrelated thumbnail — the client
-      // shows a clean placeholder instead of a misleading picture.
+      // No MealDB match, so search Pexels for a real photo of the dish using
+      // the model's image search term (falling back to the dish name). If that
+      // also comes up empty the client shows a clean branded placeholder.
+      const imageUrl =
+        (await fetchDishPhoto(generated.image_search_term)) ??
+        (await fetchDishPhoto(recommendation.dish_name));
+
       return {
         ok: true as const,
         recipe: {
@@ -156,7 +185,7 @@ No markdown, no explanation.`,
           reason: recommendation.reason,
           timeEstimate: recommendation.time_estimate,
           effort: recommendation.effort,
-          imageUrl: null,
+          imageUrl,
           ingredientsUsed: recommendation.ingredients_used,
           missingIngredients: recommendation.missing_ingredients,
           ingredients: generated.ingredients,
