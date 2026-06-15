@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Check, Clock3, RotateCcw, ShoppingBasket } from "lucide-react";
+import { Bookmark, Check, Clock3, RotateCcw, ShoppingBasket } from "lucide-react";
 import { AppShell } from "@/components/homebite/app-shell";
 import { DishImage } from "@/components/homebite/dish-image";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { cookingSession, type HomebiteRecipe } from "@/lib/cooking-session";
+import { savedRecipes } from "@/lib/saved-recipes";
+import { useIsSaved } from "@/hooks/use-saved-recipes";
 
 export const Route = createFileRoute("/recipe")({
   head: () => ({
@@ -24,6 +27,7 @@ export const Route = createFileRoute("/recipe")({
 function RecipePage() {
   const navigate = useNavigate({ from: "/recipe" });
   const [recipe, setRecipe] = useState<HomebiteRecipe | null>(null);
+  const isSaved = useIsSaved(recipe?.dishName);
 
   useEffect(() => {
     const stored = cookingSession.getRecipe();
@@ -32,14 +36,29 @@ function RecipePage() {
   }, [navigate]);
 
   if (!recipe) return null;
+
+  const toggleSave = () => {
+    const nowSaved = savedRecipes.toggle(recipe);
+    pendo.track(nowSaved ? "recipe_saved" : "recipe_unsaved", {
+      dishName: recipe.dishName,
+    });
+  };
+
+  // AI recipes split ingredients into "have" vs "need"; MealDB browse recipes
+  // don't, so we show a single full ingredient list for those instead.
+  const hasCuratedLists = recipe.ingredientsUsed.length > 0 || recipe.missingIngredients.length > 0;
+  const metaLine = [recipe.timeEstimate ? `~${recipe.timeEstimate}` : null, recipe.effort]
+    .filter(Boolean)
+    .join(" · ");
+
   const reroll = () => {
     const input = cookingSession.getInput();
     pendo.track("recipe_rerolled", {
       previousDishName: recipe.dishName,
       previousTimeEstimate: recipe.timeEstimate,
       previousEffort: recipe.effort,
-      time: input?.time,
-      vibe: input?.vibe,
+      timeMinutes: input?.timeMinutes,
+      vibes: input?.vibes.join(", "),
       ingredientCount: input?.ingredients.length,
     });
     cookingSession.clearRecipe();
@@ -66,6 +85,17 @@ function RecipePage() {
             Edit ingredients
           </Button>
         </div>
+        <div className="absolute right-4 top-4">
+          <Button
+            variant="secondary"
+            className="rounded-full bg-background/90 shadow-sm"
+            onClick={toggleSave}
+            aria-pressed={isSaved}
+          >
+            <Bookmark className={cn("size-4", isSaved && "fill-current")} />
+            {isSaved ? "Saved" : "Save"}
+          </Button>
+        </div>
       </div>
       <AppShell compact>
         <article className="-mt-3 pt-8">
@@ -76,16 +106,47 @@ function RecipePage() {
             {recipe.dishName}
           </h1>
           <p className="mt-4 text-lg italic leading-8 text-muted-foreground">“{recipe.reason}”</p>
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-secondary-foreground">
-            <Clock3 className="size-4" />~{recipe.timeEstimate} · {recipe.effort}
-          </div>
+          {metaLine ? (
+            <div className="mt-5 inline-flex items-center gap-2 rounded-full bg-secondary px-4 py-2 text-sm font-semibold text-secondary-foreground">
+              <Clock3 className="size-4" />
+              {metaLine}
+            </div>
+          ) : null}
 
-          <IngredientList icon={Check} title="What you have" items={recipe.ingredientsUsed} />
-          <IngredientList
-            icon={ShoppingBasket}
-            title="You’ll also need"
-            items={recipe.missingIngredients}
-          />
+          {hasCuratedLists ? (
+            <>
+              <IngredientList icon={Check} title="What you have" items={recipe.ingredientsUsed} />
+              <IngredientList
+                icon={ShoppingBasket}
+                title="You’ll also need"
+                items={recipe.missingIngredients}
+              />
+            </>
+          ) : (
+            <section className="mt-10">
+              <h2 className="flex items-center gap-2 text-lg font-semibold">
+                <ShoppingBasket className="size-5 text-accent" />
+                Ingredients
+              </h2>
+              <ul className="mt-4 divide-y divide-border border-y border-border">
+                {recipe.ingredients.length ? (
+                  recipe.ingredients.map((item) => (
+                    <li
+                      key={`${item.name}-${item.measure}`}
+                      className="flex min-h-12 items-center justify-between gap-4 py-3 text-base"
+                    >
+                      <span>{item.name}</span>
+                      {item.measure ? (
+                        <span className="text-muted-foreground">{item.measure}</span>
+                      ) : null}
+                    </li>
+                  ))
+                ) : (
+                  <li className="py-3 text-muted-foreground">Nothing else.</li>
+                )}
+              </ul>
+            </section>
+          )}
 
           <section className="mt-12 border-t border-border pt-9">
             <h2 className="font-display text-3xl font-semibold">Let’s cook.</h2>

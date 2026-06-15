@@ -56,8 +56,8 @@ function LoadingPage() {
         if (!result.ok) {
           pendo.track("recipe_generation_failed", {
             errorMessage: result.error,
-            time: input.time,
-            vibe: input.vibe,
+            timeMinutes: input.timeMinutes,
+            vibes: input.vibes.join(", "),
             ingredientCount: input.ingredients.length,
             attemptNumber: attempt + 1,
           });
@@ -72,8 +72,8 @@ function LoadingPage() {
           missingIngredientsCount: result.recipe.missingIngredients.length,
           stepsCount: result.recipe.steps.length,
           hasImage: Boolean(result.recipe.imageUrl),
-          time: input.time,
-          vibe: input.vibe,
+          timeMinutes: input.timeMinutes,
+          vibes: input.vibes.join(", "),
           ingredientCount: input.ingredients.length,
         });
         cookingSession.setRecipe(result.recipe);
@@ -85,8 +85,8 @@ function LoadingPage() {
           reason instanceof Error ? reason.message : "Couldn't put a recipe together. Try again.";
         pendo.track("recipe_generation_failed", {
           errorMessage,
-          time: input.time,
-          vibe: input.vibe,
+          timeMinutes: input.timeMinutes,
+          vibes: input.vibes.join(", "),
           ingredientCount: input.ingredients.length,
           attemptNumber: attempt + 1,
         });
@@ -118,8 +118,8 @@ function LoadingPage() {
                 pendo.track("recipe_generation_retried", {
                   attemptNumber: attempt + 1,
                   previousErrorMessage: error,
-                  time: input?.time,
-                  vibe: input?.vibe,
+                  timeMinutes: input?.timeMinutes,
+                  vibes: input?.vibes.join(", "),
                   ingredientCount: input?.ingredients.length,
                 });
                 setAttempt((value) => value + 1);

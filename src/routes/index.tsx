@@ -40,6 +40,7 @@ export const Route = createFileRoute("/")({
 
 const navItems = [
   { title: "How it works", href: "#how" },
+  { title: "Recipes of the Week", to: "/browse" as const },
   { title: "Saved recipes", to: "/saved" as const },
 ];
 
@@ -260,6 +261,12 @@ function Index() {
                 source="fridge"
                 note="Beta"
               />
+              <p className="pt-1 text-center text-sm text-muted-foreground">
+                Not sure?{" "}
+                <Link to="/browse" className="font-medium text-primary hover:underline">
+                  Recipes of the Week
+                </Link>
+              </p>
             </motion.div>
 
             <motion.div

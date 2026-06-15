@@ -33,7 +33,16 @@ export const askHomebite = createServerFn({ method: "POST" })
         content: message.content,
       }));
 
-      const result = await generateText({ model, system, messages, maxOutputTokens: 600 });
+      // maxRetries: 0 — like generateJson, don't let the AI SDK silently retry
+      // up to 3x on a 429. On the free tier that amplification is what trips the
+      // per-minute quota; we'd rather surface the busy message immediately.
+      const result = await generateText({
+        model,
+        system,
+        messages,
+        maxOutputTokens: 600,
+        maxRetries: 0,
+      });
       const reply = result.text.trim();
       if (!reply) throw new Error(`Empty AI response (${result.finishReason})`);
 
