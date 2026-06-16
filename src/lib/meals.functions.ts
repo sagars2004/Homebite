@@ -1,10 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { HomebiteRecipe } from "./cooking-session";
+import { prepareMealSteps } from "./recipe-steps.server";
 
-// TheMealDB browse layer. These calls hit only the free TheMealDB endpoints
-// (no Gemini), so browsing is fast and never touches the AI quota. "1" is the
-// free test key; a paid key drops into the same slot via MEALDB_API_KEY.
+// TheMealDB browse layer. Listing/filtering uses only free MealDB endpoints.
+// Step formatting is local (no Gemini) unless ENABLE_AI_STEP_REWRITE=true.
 type Meal = Record<string, string | null>;
 
 function mealDbUrl(path: string): string {
@@ -50,11 +50,11 @@ function parseMealIngredients(meal: Meal): { name: string; measure: string }[] {
   }).filter((item): item is { name: string; measure: string } => item !== null);
 }
 
-function mealToRecipe(meal: Meal): HomebiteRecipe {
-  const steps = (meal.strInstructions ?? "")
-    .split(/\r?\n+/)
-    .map((step) => step.trim())
-    .filter(Boolean);
+async function mealToRecipe(meal: Meal): Promise<HomebiteRecipe> {
+  const ingredients = parseMealIngredients(meal);
+  const rawInstructions = meal.strInstructions?.trim() ?? "";
+  let steps = rawInstructions ? await prepareMealSteps(rawInstructions, ingredients) : [];
+  if (steps.length === 0) steps = ["Instructions weren't available for this one."];
 
   const tags = [meal.strArea, meal.strCategory].filter(Boolean).join(" ");
 
@@ -68,8 +68,8 @@ function mealToRecipe(meal: Meal): HomebiteRecipe {
     imageUrl: meal.strMealThumb ?? null,
     ingredientsUsed: [],
     missingIngredients: [],
-    ingredients: parseMealIngredients(meal),
-    steps: steps.length > 0 ? steps : ["Instructions weren't available for this one."],
+    ingredients,
+    steps,
   };
 }
 
@@ -142,7 +142,7 @@ export const getMeal = createServerFn({ method: "POST" })
     );
     const meal = result?.meals?.[0];
     if (!meal) return { ok: false as const, error: "Couldn't load that recipe. Try another." };
-    return { ok: true as const, recipe: mealToRecipe(meal) };
+    return { ok: true as const, recipe: await mealToRecipe(meal) };
   });
 
 // One random meal — powers "Surprise me".
@@ -150,5 +150,5 @@ export const randomMeal = createServerFn({ method: "GET" }).handler(async () => 
   const result = await mealDbFetch<{ meals: Meal[] | null }>("random.php");
   const meal = result?.meals?.[0];
   if (!meal) return { ok: false as const, error: "Couldn't find a random dish. Try again." };
-  return { ok: true as const, recipe: mealToRecipe(meal) };
+  return { ok: true as const, recipe: await mealToRecipe(meal) };
 });

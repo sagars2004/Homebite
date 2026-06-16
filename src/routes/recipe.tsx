@@ -80,7 +80,7 @@ function RecipePage() {
           <Button
             variant="secondary"
             className="rounded-full bg-background/90 shadow-sm"
-            onClick={() => navigate({ to: "/ingredients" })}
+            onClick={() => navigate({ to: "/ingredients", search: { edit: true } })}
           >
             Edit ingredients
           </Button>

@@ -1,6 +1,5 @@
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
-import tsConfigPaths from "vite-tsconfig-paths";
 import viteReact from "@vitejs/plugin-react";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
@@ -11,7 +10,6 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 export default defineConfig(async ({ command }) => {
   const plugins = [
     tailwindcss(),
-    tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tanstackStart({
       // Route TanStack Start's server entry through src/server.ts (SSR error wrapper).
       server: { entry: "server" },
@@ -32,6 +30,7 @@ export default defineConfig(async ({ command }) => {
     plugins,
     resolve: {
       alias: { "@": `${process.cwd()}/src` },
+      tsconfigPaths: true,
       dedupe: [
         "react",
         "react-dom",

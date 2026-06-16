@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
@@ -22,6 +23,7 @@ import { ThemeToggle } from "@/components/homebite/theme-toggle";
 import { Button } from "@/components/ui/button";
 import DisplayCards from "@/components/ui/display-cards";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { cookingSession } from "@/lib/cooking-session";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -120,6 +122,11 @@ const word = {
 };
 
 function Index() {
+  // Returning home starts a fresh kitchen — clear any in-progress ingredient list.
+  useEffect(() => {
+    cookingSession.clearInput();
+  }, []);
+
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-5 sm:px-8">

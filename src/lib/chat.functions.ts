@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { generateText, type ModelMessage } from "ai";
 import { z } from "zod";
 import { createAiProvider } from "./ai-provider.server";
+import { assertGeminiQuota, isRateLimitError } from "./gemini-quota.server";
 
 const InputSchema = z.object({
   messages: z
@@ -23,6 +24,7 @@ export const askHomebite = createServerFn({ method: "POST" })
   .validator((input: unknown) => InputSchema.parse(input))
   .handler(async ({ data }) => {
     try {
+      assertGeminiQuota();
       const model = createAiProvider();
       const system = data.context
         ? `${SYSTEM_PROMPT}\n\nWhat the cook is working with right now: ${data.context}`
@@ -53,7 +55,7 @@ export const askHomebite = createServerFn({ method: "POST" })
       if (message.includes("402")) {
         return { ok: false as const, error: "Homebite is out of AI credits right now. Add workspace credits, then try again." };
       }
-      if (message.includes("429")) {
+      if (isRateLimitError(error)) {
         return { ok: false as const, error: "The kitchen is busy right now. Give it a minute, then try again." };
       }
       return { ok: false as const, error: "Couldn’t get an answer just now. Try asking again." };

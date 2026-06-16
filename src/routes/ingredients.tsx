@@ -1,5 +1,6 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { z } from "zod";
 import { Plus } from "lucide-react";
 import { AppShell } from "@/components/homebite/app-shell";
 import { IngredientChip } from "@/components/homebite/ingredient-chip";
@@ -10,6 +11,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { cookingSession, DEFAULT_PREFERENCES } from "@/lib/cooking-session";
 
 export const Route = createFileRoute("/ingredients")({
+  validateSearch: z.object({
+    edit: z.boolean().optional().default(false),
+  }),
   head: () => ({
     meta: [
       { title: "What do you have? — Homebite" },
@@ -69,15 +73,30 @@ function formatTime(minutes: number) {
 
 function IngredientsPage() {
   const navigate = useNavigate({ from: "/ingredients" });
-  const saved = cookingSession.getInput();
-  const [ingredients, setIngredients] = useState<string[]>(() => saved?.ingredients ?? []);
+  const { edit } = Route.useSearch();
+  const saved = edit ? cookingSession.getInput() : null;
+
+  const [ingredients, setIngredients] = useState<string[]>(() => {
+    const photoIngredients = cookingSession.consumePhotoDraft();
+    if (photoIngredients?.length) return photoIngredients;
+    if (edit) return saved?.ingredients ?? [];
+    return [];
+  });
   const [draft, setDraft] = useState("");
   const [timeMinutes, setTimeMinutes] = useState<number>(
     () => saved?.timeMinutes ?? DEFAULT_PREFERENCES.timeMinutes,
   );
   const [timeNote, setTimeNote] = useState(() => saved?.timeNote ?? "");
-  const [vibes, setVibes] = useState<string[]>(() => saved?.vibes ?? DEFAULT_PREFERENCES.vibes);
+  const [vibes, setVibes] = useState<string[]>(
+    () => saved?.vibes ?? DEFAULT_PREFERENCES.vibes,
+  );
   const [error, setError] = useState("");
+
+  // Fresh visits (home, reload, new session) start with a blank list. Only
+  // "Edit ingredients" from a recipe should keep the saved session input.
+  useEffect(() => {
+    if (!edit) cookingSession.clearInput();
+  }, [edit]);
 
   const addIngredient = (event: FormEvent) => {
     event.preventDefault();

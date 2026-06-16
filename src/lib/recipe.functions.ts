@@ -1,6 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { generateJson } from "./ai-provider.server";
+import {
+  GeneratedRecipeSchema,
+  generatedRecipePrompt,
+  prepareMealSteps,
+} from "./recipe-steps.server";
 
 const InputSchema = z.object({
   ingredients: z.array(z.string().trim().min(1).max(80)).min(1).max(40),
@@ -23,14 +28,6 @@ const RecommendationSchema = z.object({
   time_estimate: z.string(),
   effort: z.string(),
   search_term: z.string(),
-});
-
-const StepsSchema = z.array(z.string().min(1)).min(1);
-
-const GeneratedRecipeSchema = z.object({
-  ingredients: z.array(z.object({ name: z.string(), measure: z.string() })),
-  steps: z.array(z.string()),
-  image_search_term: z.string(),
 });
 
 type Meal = Record<string, string | null>;
@@ -121,24 +118,9 @@ Return raw JSON only, no markdown, no explanation.`,
 
         const rawInstructions = meal.strInstructions?.trim() ?? "";
         let steps = rawInstructions
-          .split(/\r?\n+/)
-          .map((step) => step.trim())
-          .filter(Boolean);
-
-        if (rawInstructions) {
-          try {
-            // Verbatim PRD steps-rewrite prompt — returns a JSON array of strings.
-            steps = await generateJson({
-              prompt: `Rewrite these recipe steps in a warm, conversational tone for a home cook in their 20s. Keep every step accurate. Sound like a knowledgeable friend talking them through it — reassure them on tricky steps, say what to look for not just what to do, cut formal language. Return ONLY a valid JSON array of step strings. No markdown, no numbering, no explanation.
-
-Steps to rewrite:
-${rawInstructions}`,
-              schema: StepsSchema,
-            });
-          } catch (error) {
-            console.warn("Homebite step rewrite failed; using MealDB instructions", error);
-          }
-        }
+          ? await prepareMealSteps(rawInstructions, ingredients)
+          : [];
+        if (steps.length === 0) steps = ["Instructions weren't available for this one."];
 
         const imageUrl =
           meal.strMealThumb ?? (await fetchDishPhoto(recommendation.search_term));
@@ -159,15 +141,9 @@ ${rawInstructions}`,
         };
       }
 
-      // Fallback — full Gemini recipe generation (verbatim PRD prompt).
+      // Fallback — full Gemini recipe when MealDB has no match.
       const generated = await generateJson({
-        prompt: `Generate a complete recipe for ${recommendation.dish_name} suitable for a home cook. Return ONLY a valid JSON object:
-{
-  "ingredients": [{"name": "string", "measure": "string"}],
-  "steps": ["array of step strings in conversational friendly tone"],
-  "image_search_term": "string — a descriptive term to find a photo of this dish"
-}
-No markdown, no explanation.`,
+        prompt: generatedRecipePrompt(recommendation.dish_name),
         schema: GeneratedRecipeSchema,
       });
 
