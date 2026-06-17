@@ -38,10 +38,33 @@ function RecipePage() {
   if (!recipe) return null;
 
   const toggleSave = () => {
-    const nowSaved = savedRecipes.toggle(recipe);
-    pendo.track(nowSaved ? "recipe_saved" : "recipe_unsaved", {
-      dishName: recipe.dishName,
-    });
+    if (isSaved) {
+      try {
+        savedRecipes.toggle(recipe);
+        try {
+          pendo.track("recipe_unsaved", { dishName: recipe.dishName });
+        } catch {
+          // Analytics should never block saving.
+        }
+      } catch {
+        // ignore
+      }
+      return;
+    }
+
+    try {
+      savedRecipes.saveAndStage(recipe);
+    } catch {
+      return;
+    }
+
+    try {
+      pendo.track("recipe_saved", { dishName: recipe.dishName });
+    } catch {
+      // Analytics should never block saving.
+    }
+
+    navigate({ to: "/saved" });
   };
 
   // AI recipes split ingredients into "have" vs "need"; MealDB browse recipes
@@ -87,6 +110,7 @@ function RecipePage() {
         </div>
         <div className="absolute right-4 top-4">
           <Button
+            type="button"
             variant="secondary"
             className="rounded-full bg-background/90 shadow-sm"
             onClick={toggleSave}

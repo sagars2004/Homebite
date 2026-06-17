@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SavedRouteImport } from './routes/saved'
 import { Route as RecipeRouteImport } from './routes/recipe'
+import { Route as PulseRouteImport } from './routes/pulse'
 import { Route as LoadingRouteImport } from './routes/loading'
 import { Route as IngredientsRouteImport } from './routes/ingredients'
 import { Route as BrowseRouteImport } from './routes/browse'
@@ -24,6 +25,11 @@ const SavedRoute = SavedRouteImport.update({
 const RecipeRoute = RecipeRouteImport.update({
   id: '/recipe',
   path: '/recipe',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PulseRoute = PulseRouteImport.update({
+  id: '/pulse',
+  path: '/pulse',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoadingRoute = LoadingRouteImport.update({
@@ -52,6 +58,7 @@ export interface FileRoutesByFullPath {
   '/browse': typeof BrowseRoute
   '/ingredients': typeof IngredientsRoute
   '/loading': typeof LoadingRoute
+  '/pulse': typeof PulseRoute
   '/recipe': typeof RecipeRoute
   '/saved': typeof SavedRoute
 }
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/browse': typeof BrowseRoute
   '/ingredients': typeof IngredientsRoute
   '/loading': typeof LoadingRoute
+  '/pulse': typeof PulseRoute
   '/recipe': typeof RecipeRoute
   '/saved': typeof SavedRoute
 }
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/browse': typeof BrowseRoute
   '/ingredients': typeof IngredientsRoute
   '/loading': typeof LoadingRoute
+  '/pulse': typeof PulseRoute
   '/recipe': typeof RecipeRoute
   '/saved': typeof SavedRoute
 }
@@ -79,16 +88,25 @@ export interface FileRouteTypes {
     | '/browse'
     | '/ingredients'
     | '/loading'
+    | '/pulse'
     | '/recipe'
     | '/saved'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/browse' | '/ingredients' | '/loading' | '/recipe' | '/saved'
+  to:
+    | '/'
+    | '/browse'
+    | '/ingredients'
+    | '/loading'
+    | '/pulse'
+    | '/recipe'
+    | '/saved'
   id:
     | '__root__'
     | '/'
     | '/browse'
     | '/ingredients'
     | '/loading'
+    | '/pulse'
     | '/recipe'
     | '/saved'
   fileRoutesById: FileRoutesById
@@ -98,6 +116,7 @@ export interface RootRouteChildren {
   BrowseRoute: typeof BrowseRoute
   IngredientsRoute: typeof IngredientsRoute
   LoadingRoute: typeof LoadingRoute
+  PulseRoute: typeof PulseRoute
   RecipeRoute: typeof RecipeRoute
   SavedRoute: typeof SavedRoute
 }
@@ -116,6 +135,13 @@ declare module '@tanstack/react-router' {
       path: '/recipe'
       fullPath: '/recipe'
       preLoaderRoute: typeof RecipeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pulse': {
+      id: '/pulse'
+      path: '/pulse'
+      fullPath: '/pulse'
+      preLoaderRoute: typeof PulseRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/loading': {
@@ -154,6 +180,7 @@ const rootRouteChildren: RootRouteChildren = {
   BrowseRoute: BrowseRoute,
   IngredientsRoute: IngredientsRoute,
   LoadingRoute: LoadingRoute,
+  PulseRoute: PulseRoute,
   RecipeRoute: RecipeRoute,
   SavedRoute: SavedRoute,
 }

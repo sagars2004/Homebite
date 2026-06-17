@@ -1,21 +1,36 @@
-import { useEffect, useState } from "react";
-import { savedRecipes, type SavedRecipe } from "@/lib/saved-recipes";
+import { useCallback, useEffect, useState } from "react";
+import {
+  consumeJustSavedHandoff,
+  savedRecipes,
+  type SavedRecipe,
+} from "@/lib/saved-recipes";
 
-// Reactive view of the saved-recipes list. Re-reads on mount (avoids SSR/client
-// hydration mismatch by starting empty) and on any change, including other tabs.
-export function useSavedRecipes(): SavedRecipe[] {
-  const [recipes, setRecipes] = useState<SavedRecipe[]>([]);
+function readList(): SavedRecipe[] {
+  const handoff = consumeJustSavedHandoff();
+  if (handoff && !savedRecipes.isSaved(handoff.dishName)) {
+    try {
+      savedRecipes.save(handoff);
+    } catch {
+      // Fall through to whatever is already in storage.
+    }
+  }
+  return savedRecipes.refresh();
+}
+
+// null = still loading on the client; [] = loaded but empty.
+export function useSavedRecipes(): SavedRecipe[] | null {
+  const [recipes, setRecipes] = useState<SavedRecipe[] | null>(null);
+
+  const sync = useCallback(() => setRecipes(readList()), []);
 
   useEffect(() => {
-    const sync = () => setRecipes(savedRecipes.getAll());
     sync();
     return savedRecipes.subscribe(sync);
-  }, []);
+  }, [sync]);
 
   return recipes;
 }
 
-// Whether a given dish is currently saved, kept in sync with the store.
 export function useIsSaved(dishName: string | undefined): boolean {
   const [saved, setSaved] = useState(false);
 

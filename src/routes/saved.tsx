@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { Bookmark, Clock3, Trash2 } from "lucide-react";
+import { Bookmark, Clock3, Loader2, Trash2 } from "lucide-react";
 import { AppShell } from "@/components/homebite/app-shell";
 import { DishImage } from "@/components/homebite/dish-image";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,16 @@ export const Route = createFileRoute("/saved")({
 
 function SavedPage() {
   const recipes = useSavedRecipes();
+
+  if (recipes === null) {
+    return (
+      <AppShell backTo="/" compact>
+        <div className="flex min-h-[50vh] items-center justify-center">
+          <Loader2 className="size-8 animate-spin text-primary" />
+        </div>
+      </AppShell>
+    );
+  }
 
   if (recipes.length === 0) return <EmptyState />;
 
@@ -82,6 +92,7 @@ function SavedCard({ recipe }: { recipe: SavedRecipe }) {
       <div className="flex items-center justify-between border-t border-border px-5 py-3">
         <span className="text-sm font-medium text-primary">Make this again</span>
         <Button
+          type="button"
           variant="ghost"
           size="icon"
           className="text-muted-foreground hover:text-destructive"

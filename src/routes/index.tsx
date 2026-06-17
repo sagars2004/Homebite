@@ -43,6 +43,7 @@ export const Route = createFileRoute("/")({
 const navItems = [
   { title: "How it works", href: "#how" },
   { title: "Recipes of the Week", to: "/browse" as const },
+  { title: "Product Pulse", to: "/pulse" as const },
   { title: "Saved recipes", to: "/saved" as const },
 ];
 
@@ -353,13 +354,37 @@ function Index() {
               </Link>
             </Button>
           </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.4 }}
+            transition={{ delay: 0.15, duration: 0.5 }}
+            className="mx-auto mt-16 max-w-2xl rounded-2xl border border-border bg-card p-8 text-center"
+          >
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary">
+              Powered by Novus
+            </p>
+            <h3 className="mt-3 font-display text-2xl font-semibold">
+              See what Novus mapped in your codebase
+            </h3>
+            <p className="mt-2 leading-7 text-muted-foreground">
+              6 pages, 25 events, and 11 funnels & journeys — auto-discovered from Homebite by
+              Novus.
+            </p>
+            <Button asChild variant="outline" className="mt-6 rounded-lg">
+              <Link to="/pulse">
+                Open Product Pulse
+                <ArrowRight className="ml-1 size-4" />
+              </Link>
+            </Button>
+          </motion.div>
         </section>
       </main>
 
       <footer className="border-t border-border">
-        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-5 py-8 text-sm text-muted-foreground sm:flex-row sm:px-8">
-          <span className="font-display text-base font-semibold text-foreground">Homebite</span>
-          <span>Tell me what to make tonight.</span>
+        <div className="mx-auto max-w-6xl px-5 py-8 text-center text-sm text-muted-foreground sm:px-8">
+          © 2026 Homebite, by Sagar Sahu. All Rights Reserved.
         </div>
       </footer>
     </div>

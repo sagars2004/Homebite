@@ -1,0 +1,179 @@
+{
+  "syncedAt": "2026-06-16T15:00:00.000Z",
+  "source": "novus-mcp",
+  "statusMessage": "Your codebase is mapped. Almost live.",
+  "mappingStats": {
+    "pages": 6,
+    "events": 25,
+    "funnelsAndJourneys": 11
+  },
+  "memory": {
+    "persona": {
+      "name": "Home Cook",
+      "description": "A young adult cooking at home with ingredients on hand but no clear plan. Wants one confident dinner recommendation — not a list to scroll through — in a friendly, conversational tone."
+    },
+    "productAreas": [
+      {
+        "name": "Home",
+        "description": "Landing page where users choose how to input ingredients — type, snap a receipt, or photo the fridge."
+      },
+      {
+        "name": "Ingredient Input",
+        "description": "Core data-entry step: add ingredients, set cooking time, and pick a meal vibe before generation."
+      },
+      {
+        "name": "Recipe Generation & Viewing",
+        "description": "AI-powered recipe recommendation with hero image, ingredient lists, and step-by-step instructions."
+      },
+      {
+        "name": "Saved Recipes",
+        "description": "Planned collection for bookmarking favorite dinner plans. Persistence coming in a future build."
+      },
+      {
+        "name": "App Shell & Settings",
+        "description": "Cross-cutting header, navigation, theme toggle, and error handling on every page."
+      }
+    ],
+    "keyFlows": [
+      {
+        "name": "Core Recipe Flow: Ingredients to Recipe",
+        "description": "The primary user journey — from ingredient input to viewing a generated dinner plan."
+      },
+      {
+        "name": "Re-roll: Make Something Else",
+        "description": "User requests a different recipe with the same ingredients after seeing the first suggestion."
+      },
+      {
+        "name": "Edit Ingredients and Regenerate",
+        "description": "User refines their ingredient list from the recipe view and generates again."
+      },
+      {
+        "name": "Error Recovery",
+        "description": "Handles generation failures — network issues, rate limits, or invalid AI responses."
+      },
+      {
+        "name": "Missing State Recovery",
+        "description": "Guards against empty or stale session state when navigating between pages."
+      }
+    ]
+  },
+  "signals": [
+    {
+      "id": "ede9dea1-e76d-4871-9778-3962465ae42a",
+      "title": "No in-app guides deployed yet",
+      "description": "0 active guides across all five product areas — no onboarding or feature-discovery layer in the app today.",
+      "priority": "medium",
+      "category": "opportunity",
+      "keyMetric": { "label": "Active guides", "value": "0" },
+      "whySurfaced": "Novus mapped five product areas but found no guide entities. Signals for usage patterns will strengthen once more sessions flow through after install.",
+      "detectedAt": "2026-06-13T12:02:03.742Z"
+    }
+  ],
+  "trackEvents": [
+    {
+      "id": "f06b28aa-794f-4f76-a349-972d7a31d305",
+      "name": "ingredients_submitted",
+      "description": "User submits ingredient list with cooking time and vibe preferences to start recipe generation.",
+      "surface": "Ingredients"
+    },
+    {
+      "id": "f6d79794-8a64-47cf-bfb5-da66a399650f",
+      "name": "recipe_generated",
+      "description": "AI successfully generates a recipe and navigates the user to the recipe view.",
+      "surface": "Loading → Recipe"
+    },
+    {
+      "id": "17e7e025-758b-4fd1-b938-a3d7e528bfb5",
+      "name": "recipe_generation_failed",
+      "description": "Recipe generation fails — API limits, invalid responses, or network errors.",
+      "surface": "Loading"
+    },
+    {
+      "id": "fb00eddf-fd1c-4599-ab85-1cdea182fe15",
+      "name": "recipe_rerolled",
+      "description": "User taps \"Make something else\" for a new recipe with the same ingredients.",
+      "surface": "Recipe"
+    },
+    {
+      "id": "5517187b-dc78-4d09-b9cf-10d6b9de23ae",
+      "name": "recipe_generation_retried",
+      "description": "User taps \"Try again\" after a generation failure.",
+      "surface": "Loading"
+    }
+  ],
+  "funnels": [
+    {
+      "id": "3a104531-73c6-476e-9dd6-08b593e83683",
+      "name": "Home to Recipe Conversion",
+      "description": "End-to-end flow from landing on Home to viewing a generated recipe — the core value chain.",
+      "totalSessions": 53,
+      "completedSessions": 2,
+      "overallConversionRate": 0.0377,
+      "highestDropOffStep": 2,
+      "steps": [
+        { "stepNumber": 1, "label": "Home", "sessionCount": 53, "dropOffRate": 0, "conversionRate": 1 },
+        { "stepNumber": 2, "label": "Start cooking", "sessionCount": 4, "dropOffRate": 0.9245, "conversionRate": 0.0755 },
+        { "stepNumber": 3, "label": "Ingredients page", "sessionCount": 4, "dropOffRate": 0, "conversionRate": 0.0755 },
+        { "stepNumber": 4, "label": "Submit ingredients", "sessionCount": 2, "dropOffRate": 0.5, "conversionRate": 0.0377 },
+        { "stepNumber": 5, "label": "Generation loading", "sessionCount": 2, "dropOffRate": 0, "conversionRate": 0.0377 },
+        { "stepNumber": 6, "label": "Recipe view", "sessionCount": 2, "dropOffRate": 0, "conversionRate": 0.0377 }
+      ]
+    },
+    {
+      "id": "4ca211db-e04e-4d47-bbf7-849381f1e617",
+      "name": "Ingredient Configuration & Submission",
+      "description": "How sessions move through the ingredient form — typing, adding items, and submitting.",
+      "totalSessions": 9,
+      "completedSessions": 2,
+      "overallConversionRate": 0.2222,
+      "highestDropOffStep": 2,
+      "steps": [
+        { "stepNumber": 1, "label": "Ingredients page", "sessionCount": 9, "dropOffRate": 0, "conversionRate": 1 },
+        { "stepNumber": 2, "label": "Add ingredients", "sessionCount": 2, "dropOffRate": 0.7778, "conversionRate": 0.2222 },
+        { "stepNumber": 3, "label": "Set time & vibe", "sessionCount": 2, "dropOffRate": 0, "conversionRate": 0.2222 },
+        { "stepNumber": 4, "label": "Submit", "sessionCount": 2, "dropOffRate": 0, "conversionRate": 0.2222 }
+      ]
+    },
+    {
+      "id": "eeeee9a1-c6d3-4b8a-893a-69d3a22d1d8f",
+      "name": "Recipe Reroll",
+      "description": "Sessions that request a different recipe with the same ingredients.",
+      "totalSessions": 1,
+      "completedSessions": 1,
+      "overallConversionRate": 1,
+      "steps": [
+        { "stepNumber": 1, "label": "Make something else", "sessionCount": 1, "dropOffRate": 0, "conversionRate": 1 },
+        { "stepNumber": 2, "label": "Reroll event", "sessionCount": 1, "dropOffRate": 0, "conversionRate": 1 },
+        { "stepNumber": 3, "label": "Loading", "sessionCount": 1, "dropOffRate": 0, "conversionRate": 1 },
+        { "stepNumber": 4, "label": "New recipe", "sessionCount": 1, "dropOffRate": 0, "conversionRate": 1 }
+      ]
+    },
+    {
+      "id": "3560afac-0590-4891-938e-1723cc155120",
+      "name": "Generation Error Recovery",
+      "description": "Whether sessions retry after a failed generation and reach a recipe.",
+      "totalSessions": 1,
+      "completedSessions": 1,
+      "overallConversionRate": 1,
+      "steps": [
+        { "stepNumber": 1, "label": "Generation failed", "sessionCount": 1, "dropOffRate": 0, "conversionRate": 1 },
+        { "stepNumber": 2, "label": "Try again", "sessionCount": 1, "dropOffRate": 0, "conversionRate": 1 },
+        { "stepNumber": 3, "label": "Recipe view", "sessionCount": 1, "dropOffRate": 0, "conversionRate": 1 }
+      ]
+    },
+    {
+      "id": "bbfaf0d4-2c35-4db6-a8df-2f1134156d58",
+      "name": "Recipe Edit & Regenerate",
+      "description": "Sessions that edit ingredients from a recipe and generate again.",
+      "totalSessions": 0,
+      "completedSessions": 0,
+      "overallConversionRate": 0,
+      "steps": [
+        { "stepNumber": 1, "label": "Recipe view", "sessionCount": 0, "dropOffRate": 0, "conversionRate": 0 },
+        { "stepNumber": 2, "label": "Edit ingredients", "sessionCount": 0, "dropOffRate": 0, "conversionRate": 0 },
+        { "stepNumber": 3, "label": "Resubmit", "sessionCount": 0, "dropOffRate": 0, "conversionRate": 0 },
+        { "stepNumber": 4, "label": "New recipe", "sessionCount": 0, "dropOffRate": 0, "conversionRate": 0 }
+      ]
+    }
+  ]
+}

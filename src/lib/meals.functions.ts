@@ -27,17 +27,76 @@ async function mealDbFetch<T>(path: string): Promise<T | null> {
 // the grid light; the full image is loaded later on the recipe page.
 export type MealSummary = { id: string; name: string; thumb: string | null };
 
+/** Catalog entry with tags for client-side filtering (stable weekly set). */
+export type WeeklyMealSummary = MealSummary & {
+  categories: string[];
+  areas: string[];
+};
+
+function summaryFromMeal(meal: Meal): MealSummary | null {
+  const id = meal.idMeal?.trim();
+  const name = meal.strMeal?.trim();
+  if (!id || !name) return null;
+  const thumb = meal.strMealThumb?.trim();
+  return { id, name, thumb: thumb ? `${thumb}/small` : null };
+}
+
 function toSummaries(meals: Meal[] | null): MealSummary[] {
   if (!meals) return [];
   return meals
-    .map((meal) => {
-      const id = meal.idMeal?.trim();
-      const name = meal.strMeal?.trim();
-      if (!id || !name) return null;
-      const thumb = meal.strMealThumb?.trim();
-      return { id, name, thumb: thumb ? `${thumb}/small` : null };
-    })
+    .map((meal) => summaryFromMeal(meal))
     .filter((item): item is MealSummary => item !== null);
+}
+
+// Fixed MealDB filters — deterministic, same recipes every time until the DB changes.
+const WEEKLY_CATEGORIES = [
+  "Chicken",
+  "Beef",
+  "Seafood",
+  "Pasta",
+  "Vegetarian",
+  "Dessert",
+  "Breakfast",
+  "Side",
+  "Lamb",
+  "Pork",
+] as const;
+
+const WEEKLY_AREAS = [
+  "American",
+  "British",
+  "Chinese",
+  "French",
+  "Indian",
+  "Italian",
+  "Japanese",
+  "Mexican",
+  "Thai",
+  "Spanish",
+] as const;
+
+function mergeWeeklyEntry(
+  map: Map<string, WeeklyMealSummary>,
+  meal: Meal,
+  tag: { category?: string; area?: string },
+) {
+  const base = summaryFromMeal(meal);
+  if (!base) return;
+
+  const existing = map.get(base.id) ?? {
+    ...base,
+    categories: [],
+    areas: [],
+  };
+
+  if (tag.category && !existing.categories.includes(tag.category)) {
+    existing.categories.push(tag.category);
+  }
+  if (tag.area && !existing.areas.includes(tag.area)) {
+    existing.areas.push(tag.area);
+  }
+
+  map.set(base.id, existing);
 }
 
 // MealDB packs ingredients into 20 numbered slots; collapse them to a list.
@@ -93,43 +152,46 @@ export const getMealFilters = createServerFn({ method: "GET" }).handler(async ()
   };
 });
 
-const BrowseSchema = z.object({
-  search: z.string().trim().max(80).optional(),
-  ingredient: z.string().trim().max(80).optional(),
-  category: z.string().trim().max(80).optional(),
-  area: z.string().trim().max(80).optional(),
+// Load a fixed catalog from MealDB category + area filters. The set is stable
+// across page loads; the browse UI filters and paginates client-side.
+export const getWeeklyCatalog = createServerFn({ method: "GET" }).handler(async () => {
+  const [categoryResults, areaResults] = await Promise.all([
+    Promise.all(
+      WEEKLY_CATEGORIES.map((category) =>
+        mealDbFetch<{ meals: Meal[] | null }>(`filter.php?c=${encodeURIComponent(category)}`).then(
+          (result) => ({ category, meals: result?.meals ?? [] }),
+        ),
+      ),
+    ),
+    Promise.all(
+      WEEKLY_AREAS.map((area) =>
+        mealDbFetch<{ meals: Meal[] | null }>(`filter.php?a=${encodeURIComponent(area)}`).then(
+          (result) => ({ area, meals: result?.meals ?? [] }),
+        ),
+      ),
+    ),
+  ]);
+
+  const map = new Map<string, WeeklyMealSummary>();
+
+  for (const { category, meals } of categoryResults) {
+    for (const meal of meals) mergeWeeklyEntry(map, meal, { category });
+  }
+  for (const { area, meals } of areaResults) {
+    for (const meal of meals) mergeWeeklyEntry(map, meal, { area });
+  }
+
+  const meals = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+  return { meals, weekLabel: weekLabel() };
 });
 
-// TheMealDB's filter.php only supports ONE filter at a time, so we apply the
-// most specific condition the user set, in priority order. Returns lightweight
-// summary cards.
-export const browseMeals = createServerFn({ method: "POST" })
-  .validator((input: unknown) => BrowseSchema.parse(input))
-  .handler(async ({ data }) => {
-    let result: { meals: Meal[] | null } | null = null;
-
-    if (data.search) {
-      result = await mealDbFetch(`search.php?s=${encodeURIComponent(data.search)}`);
-    } else if (data.ingredient) {
-      const ingredient = data.ingredient.replace(/\s+/g, "_");
-      result = await mealDbFetch(`filter.php?i=${encodeURIComponent(ingredient)}`);
-    } else if (data.category) {
-      result = await mealDbFetch(`filter.php?c=${encodeURIComponent(data.category)}`);
-    } else if (data.area) {
-      result = await mealDbFetch(`filter.php?a=${encodeURIComponent(data.area)}`);
-    } else {
-      // No filter chosen — show a varied starter set of random meals.
-      const randoms = await Promise.all(
-        Array.from({ length: 8 }, () => mealDbFetch<{ meals: Meal[] | null }>("random.php")),
-      );
-      const meals = randoms.flatMap((r) => r?.meals ?? []);
-      // Dedupe in case random.php repeats a meal.
-      const unique = Array.from(new Map(meals.map((m) => [m.idMeal, m])).values());
-      return { meals: toSummaries(unique) };
-    }
-
-    return { meals: toSummaries(result?.meals ?? null) };
-  });
+function weekLabel(): string {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const week = Math.ceil(((now.getTime() - start.getTime()) / 86_400_000 + start.getDay() + 1) / 7);
+  return `${now.getFullYear()}-W${String(week).padStart(2, "0")}`;
+}
 
 const MealIdSchema = z.object({ id: z.string().trim().min(1).max(40) });
 

@@ -3,10 +3,10 @@ import { generateText, type ModelMessage } from "ai";
 import type { z } from "zod";
 import { assertGeminiQuota, isRateLimitError } from "./gemini-quota.server";
 
-// Text + JSON: gemini-2.0-flash has better free-tier RPM than gemini-3-flash.
-// Vision/OCR: gemini-1.5-flash is more reliable for image input on the free tier.
+// Text + JSON: gemini-2.0-flash — good free-tier RPM.
+// Vision/OCR: gemini-2.5-flash (gemini-1.5-flash is no longer on the v1beta API).
 const DEFAULT_TEXT_MODEL = "gemini-2.0-flash";
-const DEFAULT_VISION_MODEL = "gemini-1.5-flash";
+const DEFAULT_VISION_MODEL = "gemini-2.5-flash";
 
 export function createAiProvider(kind: "text" | "vision" = "text") {
   const apiKey = process.env.GEMINI_API_KEY ?? process.env.GOOGLE_GENERATIVE_AI_API_KEY;
